@@ -26,7 +26,7 @@ struct ProfileView: View {
         switch state {
         case .unknown: return "確認中..."
         case .signedOut: return "サインインしていません"
-        case .signedIn(let id): return "サインイン中: \(id)"
+        case .signedIn(let userId, _): return "サインイン中: \(userId)"
         }
     }
 

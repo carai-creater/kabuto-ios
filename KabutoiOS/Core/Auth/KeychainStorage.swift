@@ -1,9 +1,17 @@
 import Foundation
 import Security
 
+/// Abstraction the rest of the app talks to. Phase 2 wires a real
+/// Keychain-backed implementation; tests can substitute InMemoryKeychain.
+protocol KeychainStoring: Sendable {
+    func set(_ data: Data, for key: String) throws
+    func get(_ key: String) throws -> Data?
+    func delete(_ key: String) throws
+}
+
 /// Thin Keychain wrapper scoped to one service. Handles storing/reading raw
 /// bytes for the Supabase session envelope. No third-party dependency.
-struct KeychainStorage: Sendable {
+struct KeychainStorage: KeychainStoring {
     let service: String
 
     func set(_ data: Data, for key: String) throws {

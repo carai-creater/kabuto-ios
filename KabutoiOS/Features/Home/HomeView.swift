@@ -3,27 +3,50 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppEnvironment.self) private var env
 
+    @State private var me: Me?
+    @State private var meError: String?
+    @State private var isLoading: Bool = false
+
     var body: some View {
         List {
-            Section("Phase 1 – 基盤のみ") {
-                LabeledContent("API Base URL", value: env.config.apiBaseURL.absoluteString)
-                LabeledContent("Supabase URL", value: env.config.supabaseURL.absoluteString)
-                LabeledContent("Auth state", value: describe(env.auth.state))
+            Section("アカウント") {
+                if let me {
+                    LabeledContent("Name", value: me.name ?? me.email)
+                    LabeledContent("Email", value: me.email)
+                    LabeledContent("Role", value: me.role)
+                    LabeledContent("Wallet", value: "\(me.walletBalancePt) pt")
+                } else if isLoading {
+                    ProgressView("取得中...")
+                } else if let meError {
+                    Label(meError, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                        .font(.footnote)
+                } else {
+                    Text("サインインしていません")
+                        .foregroundStyle(.secondary)
+                }
             }
+
             Section("次フェーズで実装") {
-                Text("マーケットプレイス表示、おすすめエージェント、最近の会話、ウォレット残高カード")
+                Text("おすすめエージェント / 最近の会話 / ウォレット残高カード")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Kabuto")
+        .refreshable { await load() }
+        .task { await load() }
     }
 
-    private func describe(_ state: AuthService.State) -> String {
-        switch state {
-        case .unknown: return "unknown"
-        case .signedOut: return "signed out"
-        case .signedIn(let id): return "signed in (\(id))"
+    private func load() async {
+        if case .signedOut = env.auth.state { return }
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            me = try await env.meRepository.fetch()
+            meError = nil
+        } catch {
+            meError = String(describing: error)
         }
     }
 }

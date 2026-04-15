@@ -33,11 +33,16 @@
 		A000000000000000000000D3 /* Secrets.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.example.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXBuildFile section */
+		B100000000000000000000A3 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = B100000000000000000000A2 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		A000000000000000000000E1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B100000000000000000000A3 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,6 +104,9 @@
 				A000000000000000000000B1 /* KabutoiOS */,
 			);
 			name = KabutoiOS;
+			packageProductDependencies = (
+				B100000000000000000000A2 /* Supabase */,
+			);
 			productName = KabutoiOS;
 			productReference = A000000000000000000000C1 /* KabutoiOS.app */;
 			productType = "com.apple.product-type.application";
@@ -153,6 +161,9 @@
 			);
 			mainGroup = A000000000000000000000F0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B100000000000000000000A1 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A000000000000000000000F2 /* Products */;
 			projectDirPath = "";
@@ -163,6 +174,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B100000000000000000000A1 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B100000000000000000000A2 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B100000000000000000000A1 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A00000000000000000000401 /* Resources */ = {

@@ -4,18 +4,37 @@ Native iOS (SwiftUI) client for [kabuto](https://github.com/carai-creater/kabuto
 
 This project mirrors the feature set of the existing Next.js web app without changing its behavior or domain model. The existing Next.js backend is the source of truth; this app talks to it via a new `/api/v1/*` REST layer (to be added in kabuto).
 
-## Status — Phase 1 (foundation)
+## Status
+
+### Phase 1 (foundation) — done
 
 - [x] Xcode project (filesystem-synchronized groups)
 - [x] SwiftUI `@main` + root `TabView`
 - [x] `AppEnvironment` DI container
 - [x] `AppConfig` loading from Info.plist (injected via xcconfig — no hardcoded secrets)
 - [x] `APIClient` skeleton (URLSession, bearer-token provider hook)
-- [x] `AuthService` skeleton + `SessionStore` (Keychain-backed)
 - [x] Feature placeholders for Home / Marketplace / Wallet / Profile
-- [x] Unit test target with `AppConfig` tests
-- [ ] Supabase Swift SDK wiring — Phase 2
-- [ ] Real endpoints / chat streaming / StoreKit — Phase 3+
+
+### Phase 2 (auth + session) — done
+
+- [x] `supabase-swift` 2.43.1 wired as a package dependency
+- [x] `AuthService` implementation (signIn / signUp / signOut / restore / auto-refresh via `authStateChanges`)
+- [x] `SessionStore` persistence in Keychain (`KeychainStoring` protocol, in-memory stub for tests)
+- [x] `RootView` auth gate (unknown → splash, signedOut → AuthView, signedIn → TabView)
+- [x] Login/Signup UI with email+password, validation, error display
+- [x] `#if DEBUG` demo credentials button (compiled out in Release)
+- [x] `/api/v1/me` client repository + HomeView live fetch
+- [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
+- [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3 (6/6 passing)
+
+### Not yet
+
+- [ ] Real endpoints for marketplace / agent detail — Phase 3
+- [ ] Chat streaming (SSE) — Phase 4
+- [ ] StoreKit IAP — Phase 5
+- [ ] Creator dashboard — Phase 6
+- [ ] MCP / settings / profile editing — Phase 7
+- [ ] APNs push / admin / guest / localization — Phase 8
 
 ## Requirements
 

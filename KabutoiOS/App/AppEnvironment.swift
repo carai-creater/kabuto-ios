@@ -9,6 +9,7 @@ final class AppEnvironment {
     let config: AppConfig
     let apiClient: APIClient
     let auth: AuthService
+    let meRepository: MeRepository
 
     init(config: AppConfig) {
         self.config = config
@@ -18,5 +19,6 @@ final class AppEnvironment {
             baseURL: config.apiBaseURL,
             tokenProvider: { [auth] in await auth.currentAccessToken() }
         )
+        self.meRepository = MeRepository(api: self.apiClient)
     }
 }

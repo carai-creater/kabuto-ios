@@ -11,11 +11,11 @@ struct PersistedSession: Codable, Sendable {
 }
 
 actor SessionStore {
-    private let keychain: KeychainStorage
+    private let keychain: any KeychainStoring
     private let key = "supabase.session"
     private var cached: PersistedSession?
 
-    init(keychain: KeychainStorage) {
+    init(keychain: any KeychainStoring) {
         self.keychain = keychain
     }
 

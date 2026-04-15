@@ -1,11 +1,26 @@
 import SwiftUI
 
-/// Top-level navigation. Mirrors the kabuto web shell layout at a high level:
-/// home / marketplace / wallet / profile. Individual features are skeletons in
-/// Phase 1 — real data fetching lands in later phases.
+/// Top-level navigation. Gated on auth state:
+///   - `.unknown`  → splash (while we try to restore from Keychain)
+///   - `.signedOut` → AuthView (login / signup)
+///   - `.signedIn`  → the real TabView
 struct RootView: View {
     @Environment(AppEnvironment.self) private var env
 
+    var body: some View {
+        switch env.auth.state {
+        case .unknown:
+            ProgressView("読み込み中...")
+                .controlSize(.large)
+        case .signedOut:
+            AuthView()
+        case .signedIn:
+            MainTabs()
+        }
+    }
+}
+
+private struct MainTabs: View {
     var body: some View {
         TabView {
             NavigationStack { HomeView() }

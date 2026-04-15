@@ -1,0 +1,24 @@
+// Debug configuration
+// Inherits from Secrets.xcconfig (gitignored). Copy Secrets.example.xcconfig → Secrets.xcconfig and fill in.
+#include? "Secrets.xcconfig"
+
+// Build settings
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG
+GCC_PREPROCESSOR_DEFINITIONS = DEBUG=1
+
+// App identity
+PRODUCT_BUNDLE_IDENTIFIER = com.carai.kabutoios.debug
+PRODUCT_NAME = Kabuto
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// API defaults (may be overridden by Secrets.xcconfig)
+KABUTO_API_BASE_URL = $(KABUTO_API_BASE_URL)
+KABUTO_SUPABASE_URL = $(KABUTO_SUPABASE_URL)
+KABUTO_SUPABASE_ANON_KEY = $(KABUTO_SUPABASE_ANON_KEY)
+
+// Info.plist injection — the $() values are written into Info.plist automatically
+// via INFOPLIST_KEY_* and custom user-defined settings below.
+INFOPLIST_KEY_KabutoAPIBaseURL = $(KABUTO_API_BASE_URL)
+INFOPLIST_KEY_KabutoSupabaseURL = $(KABUTO_SUPABASE_URL)
+INFOPLIST_KEY_KabutoSupabaseAnonKey = $(KABUTO_SUPABASE_ANON_KEY)

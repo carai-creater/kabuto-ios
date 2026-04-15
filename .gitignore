@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration/
+xcuserdata/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+.swiftpm/
+
+# Secrets — do NOT commit
+Config/Secrets.xcconfig
+*.env
+.env.local
+
+# Fastlane / CocoaPods (not used, but safeguarded)
+fastlane/report.xml
+fastlane/Preview.html
+Pods/

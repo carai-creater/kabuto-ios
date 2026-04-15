@@ -1,0 +1,14 @@
+# SwiftFormat configuration for kabuto-ios
+--swiftversion 6.0
+--indent 4
+--maxwidth 120
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--trimwhitespace always
+--self init-only
+--importgrouping testable-bottom
+--commas always
+--semicolons never
+--stripunusedargs closure-only
+--disable redundantReturn,sortedImports

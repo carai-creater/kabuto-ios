@@ -12,6 +12,7 @@ final class AppEnvironment {
     let meRepository: MeRepository
     let agentRepository: AgentRepository
     let homeRepository: HomeRepository
+    let chatRepository: ChatRepository
 
     /// Set by features when the user attempts a write while anonymous.
     /// `RootView` observes this and presents the login sheet.
@@ -28,6 +29,12 @@ final class AppEnvironment {
         self.meRepository = MeRepository(api: self.apiClient)
         self.agentRepository = AgentRepository(api: self.apiClient)
         self.homeRepository = HomeRepository(api: self.apiClient)
+        self.chatRepository = ChatRepository(
+            baseURL: config.apiBaseURL,
+            sseClient: SSEClient(),
+            tokenProvider: { [auth] in await auth.currentAccessToken() },
+            api: self.apiClient
+        )
     }
 
     /// Call from anywhere to trigger the login sheet. Returns `true` if the

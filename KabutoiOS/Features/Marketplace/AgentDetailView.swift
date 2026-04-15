@@ -18,6 +18,7 @@ struct AgentDetailView: View {
     var body: some View {
         List {
             hero
+            chatCTA
             description
             starters
             reviewsSection
@@ -80,6 +81,20 @@ struct AgentDetailView: View {
                     }
                 }
                 .padding(.vertical, 4)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var chatCTA: some View {
+        if let detail {
+            Section {
+                NavigationLink {
+                    ChatView(slug: detail.slug, agent: detail)
+                } label: {
+                    Label("このエージェントと話す", systemImage: "paperplane.circle.fill")
+                        .font(.headline)
+                }
             }
         }
     }

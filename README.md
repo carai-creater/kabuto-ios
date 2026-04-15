@@ -26,6 +26,29 @@ This project mirrors the feature set of the existing Next.js web app without cha
 - [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
 - [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3
 
+### Phase 4 (chat streaming) — done
+
+- [x] `SSEDecoder` parses the Vercel AI SDK v6 UI message stream
+      (`text-start`, `text-delta`, `text-end`, `finish`, `[DONE]`, `error`).
+      Tool invocations / reasoning / data parts are silently dropped for
+      now.
+- [x] `SSEClient` drives `URLSession.bytes(for:)` and surfaces
+      `ChatStreamEvent`s via `AsyncThrowingStream`. HTTP 401 → `.notAuthorized`,
+      402 → `.insufficientBalance(required/balance)`, other → `.http`.
+- [x] `ChatRepository` (`ChatStreaming` protocol) for history + streaming
+      sends. iOS sends text-only `UIMessage` parts.
+- [x] `ChatViewModel` (`@Observable @MainActor`): send / cancel / stream
+      deltas, state machine (`idle / loadingHistory / sending / failed / unauthorized`).
+- [x] `ChatView`: message bubbles, composer, conversation starters,
+      toolbar "中断" during streaming, auto-scroll to latest.
+- [x] `AgentDetailView` → `ChatView` navigation via `NavigationLink`.
+- [x] kabuto side: `POST /api/v1/chat` + `GET /api/v1/chat-history`.
+      Both reuse existing logic via `processChatRequest` and
+      `getLatestChatSessionForUser` extracts. Web `/api/chat` unchanged
+      (still cookie-based, still allows guest).
+- [x] Tests: `SSEDecoderTests` × 8, `ChatViewModelTests` × 4 (happy
+      path, unauthorized, http error, cancel).
+
 ### Phase 3 (marketplace + reviews + favorites + home) — done
 
 - [x] `Agent` / `AgentDetail` / `HomePayload` Codable domain models
@@ -44,7 +67,7 @@ This project mirrors the feature set of the existing Next.js web app without cha
 
 ### Not yet
 
-- [ ] Chat streaming (SSE) — Phase 4
+- [ ] Wallet + StoreKit IAP — Phase 5
 - [ ] StoreKit IAP — Phase 5
 - [ ] Creator dashboard — Phase 6
 - [ ] MCP / settings / profile editing — Phase 7

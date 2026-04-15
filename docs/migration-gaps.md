@@ -106,6 +106,73 @@ dashboard) concern.
 
 ---
 
+## Phase 4
+
+### A8. Guest chat (3/day IP limit)
+
+**Web behavior**: unauthenticated users can chat with published agents
+up to 3 times per day, rate-limited via `tryConsumeGuestChatSlot` using a
+hashed client IP (`guest-rate-limit.ts`).
+
+**iOS Phase 4 stance**: **not implemented.** `/api/v1/chat` rejects
+unauthenticated requests with 401. iOS users must sign in to chat.
+`AppEnvironment.requireAuth()` is triggered automatically when the view
+model reports `.unauthorized`.
+
+**Why**: the IP-hash approach doesn't transfer to a mobile client (NAT
+collisions, shared carrier proxies). DeviceCheck / App Attest + a
+server-side device-id-based rate limit is the correct replacement and is
+deferred. `/api/chat` (web) still runs the existing guest path unchanged.
+
+### A9. Tool calls, image generation, code interpreter in chat UI
+
+**Web behavior**: the chat handler exposes `searchKnowledge`, `webSearch`,
+`generateImage`, `runPython` tools. The web UI renders tool invocations
+inline with expandable sections.
+
+**iOS Phase 4 stance**: the backend tools are **still active** because
+Phase 4 uses the same `processChatRequest` pipeline, so the LLM can and
+will call them. But the iOS `ChatView` **only renders text parts** —
+tool invocation events (`tool-input-available`, `tool-result`,
+`reasoning-delta`, etc.) are silently dropped by `SSEDecoder`. From the
+user's perspective the tools still work (the assistant's text output
+reflects their results), they just aren't visualized.
+
+Deferred to Phase 7 or later, when we can design UI for:
+- Tool call cards ("searching web: ...", collapsible results)
+- Inline image attachments from `generate-image`
+- Code blocks + output from `runPython`
+
+### A10. Multi-modal messages (images, files, reasoning)
+
+**Web behavior**: Vercel AI SDK supports parts of type `file`, `image`,
+`reasoning`, etc. The web UI renders them.
+
+**iOS Phase 4 stance**: outbound messages are text-only. The
+`RequestBody.UIMessage.Part` encoder sends a single `{ type: "text", text }`
+part. Incoming text-delta events are the only content rendered.
+
+### A11. ChatSession persistence on iOS send
+
+**Web behavior**: the web chat UI calls `saveChatMessages` after each
+turn to persist the conversation to `ChatSession` / `ChatMessage` tables.
+The iOS POST to `/api/v1/chat` does **not** persist — the server side
+streamText pipeline charges the wallet but doesn't write the user's
+turn into the DB.
+
+**Consequence**: `GET /api/v1/chat-history` will return what `/api/chat`
+(web) saved, but **not** what iOS sent in Phase 4. After an iOS user
+exits and relaunches, their previous conversation is empty unless they
+also used the web app.
+
+**Fix path**: add a server-side persistence step inside
+`processChatRequest`'s `onFinish` callback (or a dedicated iOS-only
+`saveChatMessagesForUser` adapter called from the iOS `send` flow).
+Deferred to a Phase 4.x patch after initial live testing confirms the
+rest of the flow works.
+
+---
+
 ## Deferred to later phases (placeholders)
 
 | # | Gap | Target phase |
@@ -141,10 +208,16 @@ Added in Phase 3:
 - [x] `POST / DELETE /api/v1/agents/:slug/favorite` — wraps new
       `toggleFavoriteCore`
 
-Still needed (Phase 4+):
+Added in Phase 4:
 
-- [ ] `POST /api/v1/chat` — re-expose `/api/chat` with Bearer auth
-      instead of cookies (Phase 4)
+- [x] `POST /api/v1/chat` — thin wrapper around the shared
+      `processChatRequest` with `allowGuest: false`
+- [x] `GET /api/v1/chat-history` — wraps new `getLatestChatSessionForUser`
+
+Still needed (Phase 5+):
+
 - [ ] `POST /api/v1/wallet/iap/grant` — new; validates a StoreKit
       transaction server-side and credits the wallet (replaces the Stripe
       webhook path for iOS) (Phase 5)
+- [ ] iOS-side `saveChatMessages` equivalent or server-side persistence
+      inside `processChatRequest.onFinish` (see A11)

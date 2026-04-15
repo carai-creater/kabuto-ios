@@ -109,7 +109,20 @@ struct ChatView: View {
 
     private func ensureViewModel() async {
         if vm == nil {
-            vm = ChatViewModel(slug: slug, agent: agent, repository: env.chatRepository)
+            let historyRepo = env.chatHistoryRepository
+            let agentIdOrSlug = agent?.id ?? slug
+            vm = ChatViewModel(
+                slug: slug,
+                agent: agent,
+                repository: env.chatRepository,
+                onFinishedPersist: { [historyRepo, agentIdOrSlug] messages in
+                    _ = try? await historyRepo.save(
+                        agentIdOrSlug: agentIdOrSlug,
+                        sessionId: nil,
+                        messages: messages
+                    )
+                }
+            )
         }
         if case .signedIn = env.auth.state {
             await vm?.loadHistory()

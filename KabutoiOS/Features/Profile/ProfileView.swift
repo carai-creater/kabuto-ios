@@ -8,15 +8,43 @@ struct ProfileView: View {
             Section("セッション") {
                 Text(describe(env.auth.state))
             }
+
+            if case .signedIn = env.auth.state {
+                Section("設定") {
+                    NavigationLink {
+                        ProfileEditView()
+                    } label: {
+                        Label("プロフィール編集", systemImage: "person.text.rectangle")
+                    }
+                    NavigationLink {
+                        McpConnectionsView()
+                    } label: {
+                        Label("MCP 接続", systemImage: "link")
+                    }
+                    NavigationLink {
+                        CreatorDashboardView()
+                    } label: {
+                        Label("クリエイター", systemImage: "sparkles")
+                    }
+                }
+            }
+
             Section {
                 Button("サインアウト", role: .destructive) {
                     Task { await env.auth.signOut() }
                 }
                 .disabled(!isSignedIn(env.auth.state))
             }
+
             Section("ビルド情報") {
-                LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-")
-                LabeledContent("Build", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "-")
+                LabeledContent(
+                    "Version",
+                    value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-"
+                )
+                LabeledContent(
+                    "Build",
+                    value: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "-"
+                )
             }
         }
         .navigationTitle("プロフィール")

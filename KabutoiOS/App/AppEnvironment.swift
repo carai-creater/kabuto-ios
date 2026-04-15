@@ -15,6 +15,10 @@ final class AppEnvironment {
     let chatRepository: ChatRepository
     let walletRepository: WalletRepository
     let storeKit: any StoreKitServicing
+    let creatorRepository: CreatorRepository
+    let profileRepository: ProfileRepository
+    let mcpRepository: McpRepository
+    let chatHistoryRepository: ChatHistoryRepository
 
     /// Set by features when the user attempts a write while anonymous.
     /// `RootView` observes this and presents the login sheet.
@@ -39,6 +43,10 @@ final class AppEnvironment {
         )
         self.walletRepository = WalletRepository(api: self.apiClient)
         self.storeKit = LiveStoreKitService()
+        self.creatorRepository = CreatorRepository(api: self.apiClient)
+        self.profileRepository = ProfileRepository(api: self.apiClient)
+        self.mcpRepository = McpRepository(api: self.apiClient)
+        self.chatHistoryRepository = ChatHistoryRepository(api: self.apiClient)
     }
 
     /// Call from anywhere to trigger the login sheet. Returns `true` if the

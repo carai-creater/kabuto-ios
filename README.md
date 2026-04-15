@@ -26,6 +26,29 @@ This project mirrors the feature set of the existing Next.js web app without cha
 - [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
 - [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3
 
+### Phase 6 (creator + profile/MCP + chat persistence + JWS verification) — done
+
+- [x] A11: iOS chat turns are persisted after every successful stream
+      via new `POST /api/v1/chat-history/save` — `ChatViewModel` fires
+      `onFinishedPersist` with the full message list, `ChatView` wires
+      it to `ChatHistoryRepository.save`
+- [x] A12: `verifyIapJws` cryptographically verifies the StoreKit 2
+      signed transaction. Apple Root CA - G3 is pinned
+      (`src/lib/wallet/apple-root-ca.ts`). Chain walk + leaf signature
+      via `jose.compactVerify`. Bundle id pinning via
+      `IAP_EXPECTED_BUNDLE_ID`.
+- [x] A (creator): `CreatorRepository` (list / create / update / publish),
+      `CreatorDashboardView` (list + DRAFT badge + swipe-to-publish),
+      `AgentEditorView` (minimal editor: icon, title, description,
+      instructions, starters, price)
+- [x] B (settings): `ProfileEditView`, `McpConnectionsView` (+ add sheet),
+      wired from `ProfileView` when signed in
+- [x] Server thin wrappers: `/api/v1/creator/agents[/:slug]`,
+      `/api/v1/me/profile`, `/api/v1/mcp/connections[/:serverKey]`,
+      all delegating to existing cores
+- [x] Tests: `ChatPersistenceTests` × 2 + `iap-jws.test.ts` × 7
+      (real ECDSA-P256 chain generation in-process)
+
 ### Phase 5 (wallet + StoreKit IAP) — done
 
 - [x] `WalletPackage` catalog (`pt_500`, `pt_1100`, `pt_3500`)

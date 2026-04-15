@@ -23,12 +23,22 @@ final class ChatViewModel {
     let slug: String
 
     private let repository: any ChatStreaming
+    /// Optional persistence hook: called after every successful stream
+    /// with the full message list (A11). `ChatView` wires this to the
+    /// real `ChatHistoryRepository`; tests leave it nil.
+    var onFinishedPersist: (@MainActor ([ChatMessage]) async -> Void)?
     private var activeTask: Task<Void, Never>?
 
-    init(slug: String, agent: AgentDetail?, repository: any ChatStreaming) {
+    init(
+        slug: String,
+        agent: AgentDetail?,
+        repository: any ChatStreaming,
+        onFinishedPersist: (@MainActor ([ChatMessage]) async -> Void)? = nil
+    ) {
         self.slug = slug
         self.agent = agent
         self.repository = repository
+        self.onFinishedPersist = onFinishedPersist
     }
 
     // MARK: - History
@@ -127,6 +137,12 @@ final class ChatViewModel {
         }
         if case .failed = status { return }
         status = .idle
+        // A11: persist the full turn list. Fire-and-forget — failures
+        // aren't fatal for the user, the next successful save overwrites.
+        if let hook = onFinishedPersist {
+            let snapshot = messages
+            Task { [hook] in await hook(snapshot) }
+        }
     }
 
     private func fail(with error: Error, placeholderId: String) {

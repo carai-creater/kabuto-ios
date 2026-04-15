@@ -255,6 +255,103 @@ Documented separately in README build instructions when Phase 5 ships.
 
 ---
 
+## Phase 6
+
+### A12 (RESOLVED) — JWS signature verification
+
+Phase 5's structural-only parser has been replaced by
+`verifyIapJws` (`src/lib/wallet/iap-jws.ts`). The new path:
+
+1. Parses the JWS protected header and extracts the x5c chain
+2. Walks the chain as `X509Certificate` objects, verifying each cert's
+   `notBefore` / `notAfter` and that each is signed by its issuer
+3. Pins Apple Root CA - G3 (`src/lib/wallet/apple-root-ca.ts`) — any
+   chain not rooted in this CA is rejected
+4. Verifies the JWS signature against the leaf cert's public key via
+   `jose.compactVerify`
+5. Cross-checks `claims.bundleId` against `IAP_EXPECTED_BUNDLE_ID`
+   (env) to reject tokens issued for other apps
+
+Test coverage (`src/lib/wallet/iap-jws.test.ts`, 7/7 passing):
+- happy path with a locally generated ES256 chain
+- tampered payload → rejected
+- wrong bundle id → rejected
+- chain that doesn't chain to the pinned root (real Apple G3) → rejected
+- expired cert (clock override) → rejected
+- malformed fake JWS → rejected
+- internally-consistent chain as a regression gate
+
+**Still a gap**: Apple rotates its intermediate certs on a multi-year
+cadence. If production verification starts failing after a rotation,
+update the pinned PEM in `apple-root-ca.ts` with the new file from
+apple.com/certificateauthority. Tracked as **A12.1**.
+
+### A11 (RESOLVED) — iOS chat persistence
+
+Phase 4 left iOS-sent chat turns unsaved. Phase 6 adds:
+
+- Server: `saveChatMessagesForUser` core extracted from the existing
+  cookie-based action (signature unchanged for web). New
+  `POST /api/v1/chat-history/save` route wraps it for Bearer callers.
+- iOS: `ChatViewModel.onFinishedPersist` hook fires after every
+  successful stream with the full message list. `ChatView` wires it to
+  `ChatHistoryRepository.save` so the iOS turns show up in
+  `GET /api/v1/chat-history` immediately.
+- Test: `ChatPersistenceTests` covers (a) full message list delivered on
+  success, (b) hook NOT called on stream failure.
+
+### A17. Creator editor shows list-only fields, not full detail
+
+**Current state**: `AgentEditorView` edit mode is seeded from the
+`/api/v1/creator/agents` list row, which does NOT include
+`systemPrompt` / `instructions` / `toolConfig`. So when editing an
+existing agent, the "指示プロンプト" field starts empty and the creator
+has to retype it if they want to change it — hitting save without
+retyping would wipe the existing instructions.
+
+**Why not fetch the full detail**: would need a new
+`GET /api/v1/creator/agents/:slug` endpoint that returns the full
+`Agent` row (not just the public-visible `/api/v1/agents/:slug`).
+Trivial to add, but requires a new route + another query round-trip
+when opening the editor.
+
+**Phase 7 fix**: add `GET /api/v1/creator/agents/:slug` and have
+`AgentEditorView.applyMode` load the full payload before the user
+can edit. Until then the editor is safe for CREATE and risky for
+EDIT — document the caveat in the editor header string.
+
+### A18. Knowledge upload (pre-signed URL flow)
+
+**Status**: deferred to Phase 7. The user direction called for a
+kabuto-mediated pre-signed URL flow (NOT direct Supabase Storage from
+iOS), but implementing it requires:
+- A Supabase Storage signed-URL generator endpoint
+  (`POST /api/v1/creator/agents/:slug/knowledge/upload-url`) that
+  reuses the existing `attachKnowledgeFilesFromForm` helper
+- A companion register endpoint
+  (`POST /api/v1/creator/agents/:slug/knowledge/register`) that
+  creates the `KnowledgeDocument` row after iOS uploads
+- iOS file picker + multipart upload
+- Tests for the signed-URL round-trip
+
+This is a self-contained sub-feature (~200 lines + tests) that fits
+naturally in Phase 7 alongside the A17 editor fix. For now, creators
+must upload knowledge files from the web editor.
+
+### A13 (STATUS) — billing-integrity schema migration
+
+Still intentionally deferred. Phase 6 does not add the
+`source` column to `PointPurchase` because the current
+`iap_<transactionId>` prefix scheme on `stripeSessionId` is
+functionally equivalent for idempotency (which IS the billing
+integrity concern). The rename is cosmetic and can wait for Phase 7's
+schema-change window.
+
+**Risk acknowledged**: none for correctness — the fast-path
+`findUnique` + fallback `catch P2002` combination is race-safe.
+
+---
+
 ## Deferred to later phases (placeholders)
 
 | # | Gap | Target phase |
@@ -305,8 +402,17 @@ Added in Phase 5:
 - [x] `POST /api/v1/wallet/iap/grant` — validates body + JWS structure,
       delegates to `grantIapCore` with DB-level idempotency
 
-Still needed (Phase 6+):
+Added in Phase 6:
 
-- [ ] iOS-side `saveChatMessages` equivalent or server-side persistence
-      inside `processChatRequest.onFinish` (see A11)
-- [ ] Cryptographic JWS signature verification (see A12)
+- [x] `POST /api/v1/chat-history/save` — persist iOS chat turns (A11)
+- [x] `PATCH /api/v1/me/profile` — profile editor
+- [x] `GET/POST/DELETE /api/v1/mcp/connections[/:serverKey]` — MCP CRUD
+- [x] `GET/POST /api/v1/creator/agents` — creator list + create
+- [x] `PATCH/POST /api/v1/creator/agents/:slug` — edit + publish toggle
+- [x] `verifyIapJws` cryptographic verification (A12 resolved)
+
+Still needed (Phase 7+):
+
+- [ ] `GET /api/v1/creator/agents/:slug` — full detail for edit form (A17)
+- [ ] `POST /api/v1/creator/agents/:slug/knowledge/upload-url` +
+      companion register (A18)

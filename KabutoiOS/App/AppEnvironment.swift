@@ -13,6 +13,8 @@ final class AppEnvironment {
     let agentRepository: AgentRepository
     let homeRepository: HomeRepository
     let chatRepository: ChatRepository
+    let walletRepository: WalletRepository
+    let storeKit: any StoreKitServicing
 
     /// Set by features when the user attempts a write while anonymous.
     /// `RootView` observes this and presents the login sheet.
@@ -35,6 +37,8 @@ final class AppEnvironment {
             tokenProvider: { [auth] in await auth.currentAccessToken() },
             api: self.apiClient
         )
+        self.walletRepository = WalletRepository(api: self.apiClient)
+        self.storeKit = LiveStoreKitService()
     }
 
     /// Call from anywhere to trigger the login sheet. Returns `true` if the

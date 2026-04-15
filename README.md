@@ -26,6 +26,27 @@ This project mirrors the feature set of the existing Next.js web app without cha
 - [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
 - [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3
 
+### Phase 5 (wallet + StoreKit IAP) — done
+
+- [x] `WalletPackage` catalog (`pt_500`, `pt_1100`, `pt_3500`)
+- [x] `StoreKitServicing` protocol + `LiveStoreKitService` (StoreKit 2,
+      `Product.products(for:)`, `product.purchase()`, `Transaction.updates`)
+- [x] `WalletRepository` (+ `WalletReading` protocol): fetchWallet,
+      fetchHistory (cursor), grantIAP
+- [x] `WalletViewModel` (`@Observable @MainActor`): refresh, pagination,
+      purchase flow, observer-driven backfill for deferred transactions
+- [x] `WalletView` rewritten: balance card, purchase buttons with
+      real `displayPrice`, history list with "もっと見る", graceful
+      "現在購入不可" fallback when products aren't registered yet
+- [x] kabuto side: `GET /api/v1/wallet`, `GET /api/v1/wallet/history`,
+      `POST /api/v1/wallet/iap/grant`
+- [x] kabuto `grantIapCore`: DB-level idempotency via the existing
+      `PointPurchase.stripeSessionId` unique constraint
+      (`iap_<transactionId>` encoding — no migration needed)
+- [x] kabuto standalone test runner (`npx tsx`) for
+      `iap-grant.test.ts`: 7 cases
+- [x] iOS tests: `WalletViewModelTests` × 5
+
 ### Phase 4 (chat streaming) — done
 
 - [x] `SSEDecoder` parses the Vercel AI SDK v6 UI message stream
@@ -67,7 +88,7 @@ This project mirrors the feature set of the existing Next.js web app without cha
 
 ### Not yet
 
-- [ ] Wallet + StoreKit IAP — Phase 5
+- [ ] Creator dashboard / MCP settings / profile editing — Phase 6
 - [ ] StoreKit IAP — Phase 5
 - [ ] Creator dashboard — Phase 6
 - [ ] MCP / settings / profile editing — Phase 7

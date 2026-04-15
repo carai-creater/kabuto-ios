@@ -173,6 +173,88 @@ rest of the flow works.
 
 ---
 
+## Phase 5
+
+### A12. JWS signature verification on the IAP grant endpoint
+
+**Current state**: `POST /api/v1/wallet/iap/grant` decodes the signed
+StoreKit 2 transaction JWS **without verifying the cryptographic
+signature**. It only:
+  1. Splits the JWS into `header.payload.signature`
+  2. Base64url-decodes the payload
+  3. Parses as JSON
+  4. Cross-checks `claims.transactionId` / `claims.productId` against
+     the client-sent body (rejects mismatches)
+
+The primary replay defense is the DB-level unique constraint on
+`PointPurchase.stripeSessionId` (`iap_<transactionId>`). An attacker
+who forges a JWS with a fresh, unused `transactionId` *could* currently
+get a grant. This is acceptable for an internal/dev build but **MUST
+be fixed before production**.
+
+**Fix path**: implement full `JWSTransaction` verification using
+Apple's root certificates and a JWS library (e.g. `jose` npm package).
+Apple's `app-store-server-library` or the older `app-store-server-api`
+clients handle the full chain validation + signature check. Alternative:
+use Apple's `VerifyTransaction` endpoint in the App Store Server API,
+sending the JWS and getting back a verified payload.
+
+**Blocker**: requires Apple Developer account + App Store Connect
+access to fetch the correct bundle ID and to register test products.
+
+### A13. Reusing `PointPurchase.stripeSessionId` as the IAP idempotency key
+
+**Current state**: to avoid a Prisma migration in Phase 5, we store
+`iap_<transactionId>` in the existing `stripeSessionId` column (which
+already has a unique constraint). The column name becomes a soft
+misnomer on the IAP path.
+
+**Why this is fine for now**: the column is a raw string, the
+idempotency semantics work correctly, and the existing Stripe webhook
+continues to use plain session IDs (`cs_*`) that never collide with
+`iap_*`. The `source` in `/api/v1/wallet` response inspects this
+prefix to label purchases `"iap"` vs `"stripe"`.
+
+**Fix path**: when we next touch the schema, rename
+`PointPurchase.stripeSessionId` → `idempotencyKey` and add an optional
+`source` enum column. Pure migration, no logic change.
+
+### A14. iOS Apple vs Web Stripe revenue split
+
+**Status**: unresolved economics question, NOT a technical gap. Apple
+takes 15–30% of IAP revenue; Stripe takes ~3.6% + ¥40 per transaction
+for web. The existing `CREATOR_REVENUE_SHARE = 0.65` split is applied
+**per chat usage**, not per purchase, so the creator's cut is the same
+regardless of how the user topped up. For now the IAP grant just
+credits the wallet at the advertised point amount — the platform eats
+the Apple fee silently. Future pricing adjustments are a business
+decision, not a code change.
+
+### A15. StoreKit products unavailable → graceful fallback
+
+**Current state**: `LiveStoreKitService.loadProducts()` stores the
+resulting products, or an empty dictionary if Apple returns nothing /
+the App Store Connect config is missing. `WalletView` then shows a
+"現在購入不可" message and disables the buy buttons. This is what keeps
+the app **building and running** without real App Store Connect
+products registered — CI builds, sandbox dev without an account, etc.
+
+### A16. App Store Connect setup (product registration)
+
+**Before release**, the three placeholder product IDs
+(`pt_500`, `pt_1100`, `pt_3500`) must be:
+  1. Registered as consumable in-app purchases in App Store Connect
+  2. Priced to match `expectedYen` in `WalletPackage.swift`
+     / `amountYen` in `iap-packages.ts`
+  3. Attached to a StoreKit configuration file in the Xcode project
+     (optional but recommended for simulator testing)
+  4. Submitted for review together with the app binary
+
+This is a manual App Store Connect operation the user does once.
+Documented separately in README build instructions when Phase 5 ships.
+
+---
+
 ## Deferred to later phases (placeholders)
 
 | # | Gap | Target phase |
@@ -214,10 +296,17 @@ Added in Phase 4:
       `processChatRequest` with `allowGuest: false`
 - [x] `GET /api/v1/chat-history` — wraps new `getLatestChatSessionForUser`
 
-Still needed (Phase 5+):
+Added in Phase 5:
 
-- [ ] `POST /api/v1/wallet/iap/grant` — new; validates a StoreKit
-      transaction server-side and credits the wallet (replaces the Stripe
-      webhook path for iOS) (Phase 5)
+- [x] `GET /api/v1/wallet` — balance + 10 recent purchases + 10 recent
+      usages
+- [x] `GET /api/v1/wallet/history?cursor=&limit=&kind=` — merged
+      time-ordered feed of PointPurchase + WalletTransaction
+- [x] `POST /api/v1/wallet/iap/grant` — validates body + JWS structure,
+      delegates to `grantIapCore` with DB-level idempotency
+
+Still needed (Phase 6+):
+
 - [ ] iOS-side `saveChatMessages` equivalent or server-side persistence
       inside `processChatRequest.onFinish` (see A11)
+- [ ] Cryptographic JWS signature verification (see A12)

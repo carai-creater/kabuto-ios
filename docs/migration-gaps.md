@@ -56,6 +56,56 @@ must rely on the Bearer being fresh at call time (which it is).
 
 ---
 
+---
+
+## Phase 3
+
+### A4. Anonymous browsing
+
+**Web behavior**: `/` and `/agents` are publicly browsable. Only dashboard
+routes are gated by middleware.
+
+**iOS Phase 2 behavior**: the whole app was gated — `signedOut` forced
+`AuthView`. Phase 3 relaxes this so the `MainTabs` view renders for both
+`signedOut` and `signedIn`. Writes (favorite, review) call
+`AppEnvironment.requireAuth()`, which either no-ops (if already signed in)
+or presents `AuthView` as a sheet and returns false.
+
+**Why not a "local favorites" shim**: confirmed out of scope — per user
+direction we don't carry a local-only favorite state that would later need
+migration into the server.
+
+### A5. `convertFromSnakeCase` decoder strategy
+
+**What changed**: `APIClient`'s default decoder used to be
+`.convertFromSnakeCase` (with `.convertToSnakeCase` on the encoder).
+Combined with our models' explicit `CodingKeys` (needed for `icon_emoji`,
+`price_per_use_pt`, etc.) this caused key-not-found errors at runtime —
+the strategy rewrote server keys to camelCase before the explicit
+`rawValue = "icon_emoji"` lookup. Fixed by removing the strategy; all
+domain models now own their wire naming explicitly. Caught by the new
+`AgentRepositoryTests.testListBuildsQueryStringAndDecodesItems` test, not
+by unit decode tests in isolation.
+
+### A6. Cursor pagination / list totals
+
+**Status**: the Phase 3 `GET /api/v1/agents` endpoint is **not paginated**
+— it returns up to 50 items from the already-cached `getMarketplaceAgents`.
+The web app doesn't paginate either. Fine for now; revisit when the agent
+count grows past a few hundred. (`limit` is clamped to ≤100 in the route
+and accepted but unused as a cursor.)
+
+### A7. Creator-only detail view
+
+**Status**: `GET /api/v1/agents/:slug` does look up non-published agents
+when the Bearer-resolved user is the creator, matching the web's existing
+`isPublished: true OR creatorId: sessionUserId` behavior. But the iOS
+`AgentDetailView` does not yet visually distinguish "published" vs "draft"
+state or expose creator-only edit affordances — that's a Phase 6 (creator
+dashboard) concern.
+
+---
+
 ## Deferred to later phases (placeholders)
 
 | # | Gap | Target phase |
@@ -79,14 +129,22 @@ over existing logic. Already added in Phase 2:
 - [x] `GET /api/v1/me` — wraps `ensurePrismaUserFromAuth` + a select
 - [x] `src/lib/auth/verify-bearer-token.ts` — Bearer JWT → Prisma user id
 
-Still needed (Phase 3+):
+Added in Phase 3:
 
-- [ ] `GET /api/v1/agents` — paginated marketplace list (wraps
-      `getMarketplaceAgents`)
-- [ ] `GET /api/v1/agents/:slug` — wraps the existing detail query
-- [ ] `POST /api/v1/chat` — probably just re-exports the existing
-      `/api/chat` handler with Bearer auth instead of cookies
-- [ ] `POST /api/v1/agents/:slug/reviews` — wraps `submitAgentReview`
+- [x] `GET /api/v1/home` — aggregated home (recommended / hot / new +
+      wallet / recent / favorites for authed users)
+- [x] `GET /api/v1/agents` — list wrapping `getMarketplaceAgents`, with
+      in-memory `q` / `tag` / `sort` / `limit`
+- [x] `GET /api/v1/agents/:slug` — detail + reviews (top 20), respects
+      `isPublished: true OR viewer is creator`
+- [x] `POST /api/v1/agents/:slug/reviews` — wraps new `submitReviewCore`
+- [x] `POST / DELETE /api/v1/agents/:slug/favorite` — wraps new
+      `toggleFavoriteCore`
+
+Still needed (Phase 4+):
+
+- [ ] `POST /api/v1/chat` — re-expose `/api/chat` with Bearer auth
+      instead of cookies (Phase 4)
 - [ ] `POST /api/v1/wallet/iap/grant` — new; validates a StoreKit
       transaction server-side and credits the wallet (replaces the Stripe
-      webhook path for iOS)
+      webhook path for iOS) (Phase 5)

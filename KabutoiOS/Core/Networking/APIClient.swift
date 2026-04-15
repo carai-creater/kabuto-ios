@@ -1,8 +1,8 @@
 import Foundation
 
 /// Thin typed wrapper around URLSession for the kabuto /api/v1 REST layer.
-/// Phase 1 ships the transport only — concrete endpoint models arrive with
-/// Phase 3 (marketplace) and Phase 4 (chat).
+/// Tests pass a custom `URLSession` configured with a URLProtocol stub; the
+/// transport contract stays the same.
 actor APIClient {
     private let baseURL: URL
     private let session: URLSession
@@ -19,13 +19,14 @@ actor APIClient {
         self.session = session
         self.tokenProvider = tokenProvider
 
+        // Domain models declare explicit CodingKeys (snake_case on the wire),
+        // so we leave the default .useDefaultKeys strategy alone — otherwise
+        // the strategy and the explicit keys fight and decoding fails.
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         self.decoder = decoder
 
         let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
         encoder.dateEncodingStrategy = .iso8601
         self.encoder = encoder
     }

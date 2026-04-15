@@ -20,16 +20,30 @@ This project mirrors the feature set of the existing Next.js web app without cha
 - [x] `supabase-swift` 2.43.1 wired as a package dependency
 - [x] `AuthService` implementation (signIn / signUp / signOut / restore / auto-refresh via `authStateChanges`)
 - [x] `SessionStore` persistence in Keychain (`KeychainStoring` protocol, in-memory stub for tests)
-- [x] `RootView` auth gate (unknown → splash, signedOut → AuthView, signedIn → TabView)
 - [x] Login/Signup UI with email+password, validation, error display
 - [x] `#if DEBUG` demo credentials button (compiled out in Release)
-- [x] `/api/v1/me` client repository + HomeView live fetch
+- [x] `/api/v1/me` client repository
 - [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
-- [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3 (6/6 passing)
+- [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3
+
+### Phase 3 (marketplace + reviews + favorites + home) — done
+
+- [x] `Agent` / `AgentDetail` / `HomePayload` Codable domain models
+- [x] `AgentRepository` (list / detail / setFavorite / submitReview)
+- [x] `HomeRepository` (single aggregated `/api/v1/home` call)
+- [x] `MarketplaceView` — search bar, sort menu (usage / new / rating), debounced reload
+- [x] `AgentDetailView` — hero, description, conversation starters, reviews, favorite toggle
+- [x] `ReviewSheet` — 1-5 star rating + comment, submit flow
+- [x] `HomeView` rewritten — recommended / hot / new + (signed-in) wallet / recent / favorites
+- [x] **Anonymous browsing** — `RootView` shows `MainTabs` for both `signedOut` and `signedIn`; writes call `env.requireAuth()` which presents `AuthView` as a sheet
+- [x] kabuto side: `GET /api/v1/home`, `GET /api/v1/agents`, `GET /api/v1/agents/:slug`, `POST /api/v1/agents/:slug/reviews`, `POST|DELETE /api/v1/agents/:slug/favorite`
+- [x] kabuto refactor: `review-core` / `favorite-core` extracted; existing server actions delegate unchanged
+- [x] `agent-serializer` normalizes snake_case JSON + Decimal handling
+- [x] Fix: `APIClient` no longer uses `.convertFromSnakeCase` (conflicted with explicit `CodingKeys`)
+- [x] Tests: `AgentDecodingTests` × 4, `AgentRepositoryTests` × 4 (URL/query/method/body via `MockURLProtocol`)
 
 ### Not yet
 
-- [ ] Real endpoints for marketplace / agent detail — Phase 3
 - [ ] Chat streaming (SSE) — Phase 4
 - [ ] StoreKit IAP — Phase 5
 - [ ] Creator dashboard — Phase 6

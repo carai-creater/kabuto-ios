@@ -10,6 +10,12 @@ final class AppEnvironment {
     let apiClient: APIClient
     let auth: AuthService
     let meRepository: MeRepository
+    let agentRepository: AgentRepository
+    let homeRepository: HomeRepository
+
+    /// Set by features when the user attempts a write while anonymous.
+    /// `RootView` observes this and presents the login sheet.
+    var isPresentingAuthGate: Bool = false
 
     init(config: AppConfig) {
         self.config = config
@@ -20,5 +26,16 @@ final class AppEnvironment {
             tokenProvider: { [auth] in await auth.currentAccessToken() }
         )
         self.meRepository = MeRepository(api: self.apiClient)
+        self.agentRepository = AgentRepository(api: self.apiClient)
+        self.homeRepository = HomeRepository(api: self.apiClient)
+    }
+
+    /// Call from anywhere to trigger the login sheet. Returns `true` if the
+    /// user is already signed in (caller can proceed immediately).
+    @discardableResult
+    func requireAuth() -> Bool {
+        if case .signedIn = auth.state { return true }
+        isPresentingAuthGate = true
+        return false
     }
 }

@@ -20,6 +20,7 @@ final class AppEnvironment {
     let mcpRepository: McpRepository
     let chatHistoryRepository: ChatHistoryRepository
     let chatHistoryPersister: ChatHistoryPersister
+    let knowledgeUploader: KnowledgeUploader
 
     /// Set by features when the user attempts a write while anonymous.
     /// `RootView` observes this and presents the login sheet.
@@ -49,6 +50,7 @@ final class AppEnvironment {
         self.mcpRepository = McpRepository(api: self.apiClient)
         self.chatHistoryRepository = ChatHistoryRepository(api: self.apiClient)
         self.chatHistoryPersister = ChatHistoryPersister(repository: self.chatHistoryRepository)
+        self.knowledgeUploader = KnowledgeUploader(api: self.apiClient)
     }
 
     /// Call from anywhere to trigger the login sheet. Returns `true` if the

@@ -352,6 +352,69 @@ schema-change window.
 
 ---
 
+## Phase 7 (release polish)
+
+### A7 (RESOLVED) — Creator edit form preload
+
+Server: `GET /api/v1/creator/agents/:slug` now returns the full editor
+payload (systemPrompt→instructions, starters, knowledgeDocuments,
+capabilities/actions/mcp flattened via editor-config, mcpServices, tags).
+
+iOS: `AgentEditorView.applyMode` fetches the detail on entry and seeds
+the form. Edit mode no longer silently wipes instructions on save.
+
+### A8 (RESOLVED) — Knowledge upload
+
+Server endpoints (Bearer-gated, owner check on every call):
+- `POST /api/v1/creator/agents/:slug/knowledge/upload-url` —
+  validates mime (pdf/txt/md/csv/json) + size (≤8MB) + file count
+  (≤8 per agent), returns a short-lived Supabase Storage signed URL
+  scoped to `<userId>/<agentId>/`
+- `POST /api/v1/creator/agents/:slug/knowledge/register` —
+  verifies the storage_key prefix, creates the KnowledgeDocument row
+- `DELETE /api/v1/creator/agents/:slug/knowledge/:documentId` —
+  removes the blob + DB row
+
+iOS: `KnowledgeUploader` implements the three-step flow with bounded
+retries per hop. UX integrated in `AgentEditorView` via `.fileImporter`.
+
+### A12.1 (RESOLVED) — Rotation-friendly root CA config
+
+`src/lib/wallet/apple-root-ca.ts` now exports a trusted-roots array +
+`getAppleTrustedRootsPem()`. Adding a new Apple root is:
+1. Paste the PEM into `APPLE_TRUSTED_ROOTS`
+2. Update the file's fingerprint comment
+3. Deploy
+
+Emergency rotation without deploy: `APPLE_ROOT_CA_PEM` env var.
+
+`verifyIapJwsTyped` walks the chain against each trusted root and
+accepts the first match. Single-root back-compat preserved via the
+still-exported `APPLE_ROOT_CA_G3_PEM` constant.
+
+### A13 (RESOLVED, pending migration) — PointPurchase.source column
+
+Prisma schema now has `source String?` on `PointPurchase` + `@@index`.
+New migration file (20260417180000_point_purchase_source) is
+**additive only** — no backfill, no destructive changes. Must be
+applied in production via `npx prisma migrate deploy` before the
+Phase 7 server binary runs, but the API is backward-compatible (reads
+fall back to the `stripeSessionId` prefix heuristic if `source` is
+null, so legacy rows keep working).
+
+New writes populate source='iap' (via grantIapCore) or
+source='idem_marker' (via the client-idem marker row).
+
+### A12.1.1 — Root CA monitoring (still deferred)
+
+We still don't have an automated watcher for
+apple.com/certificateauthority/ changes. Current mitigation: the RC
+checklist reminds the operator to verify the baked-in G3 PEM hasn't
+been replaced upstream. Acceptable for Phase 7 RC; revisit when we
+have a build pipeline that can periodically fetch and diff.
+
+---
+
 ## Deferred to later phases (placeholders)
 
 | # | Gap | Target phase |

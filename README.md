@@ -4,6 +4,50 @@ Native iOS (SwiftUI) client for [kabuto](https://github.com/carai-creater/kabuto
 
 This project mirrors the feature set of the existing Next.js web app without changing its behavior or domain model. The existing Next.js backend is the source of truth; this app talks to it via a new `/api/v1/*` REST layer (to be added in kabuto).
 
+## RC pre-flight checklist
+
+Complete these before cutting a release candidate build (`rc-*` tag).
+Items marked **[server]** happen in the kabuto repo; everything else
+is iOS-side.
+
+**Apple Developer / App Store Connect**
+- [ ] Real Bundle ID registered (replaces placeholder `com.carai.kabutoios`)
+- [ ] Three IAP products (`pt_500`, `pt_1100`, `pt_3500`) created and
+      priced to match `WalletPackage.swift` expected JPY (500 / 1000 / 3000)
+- [ ] Sandbox tester account configured for end-to-end purchase test
+- [ ] `IAP_EXPECTED_BUNDLE_ID` **[server]** env var set to the real Bundle ID
+
+**Server environment (kabuto)**
+- [ ] PointPurchase.source migration applied:
+      `npx prisma migrate deploy` in the production DB pool
+- [ ] `APPLE_ROOT_CA_PEM` **[server]** left unset (use baked-in G3) OR
+      set to a new root PEM bundle if Apple has rotated
+- [ ] Supabase Storage bucket `agent-knowledge` exists with RLS allowing
+      the service-role key to create/read/remove under `<userId>/<agentId>/`
+- [ ] All `/api/v1/*` endpoints reachable from the built binary's
+      `KABUTO_API_BASE_URL`
+
+**iOS build config**
+- [ ] `Config/Secrets.xcconfig` populated with production Supabase URL
+      and publishable key (not the dev placeholders)
+- [ ] `KABUTO_API_BASE_URL` points at the production Next.js deploy
+- [ ] Release configuration Bundle ID matches App Store Connect
+- [ ] Archive builds cleanly via `xcodebuild -configuration Release archive`
+
+**Smoke tests on a device**
+- [ ] Sign up with a fresh email → confirmation flow works
+- [ ] Marketplace list loads, agent detail loads
+- [ ] Chat stream produces text, turn persists across app restart
+- [ ] Sandbox IAP purchase completes, balance updates
+- [ ] Creator: create agent → edit (preload verified) → upload a PDF →
+      publish → unpublish
+- [ ] Profile edit saves, MCP connection add/delete works
+
+**Release cut**
+- [ ] Tag: `git tag rc-0.1.0 && git push origin rc-0.1.0`
+- [ ] Export IPA with distribution profile
+- [ ] Upload to TestFlight
+
 ## Status
 
 ### Phase 1 (foundation) — done
@@ -25,6 +69,24 @@ This project mirrors the feature set of the existing Next.js web app without cha
 - [x] `/api/v1/me` client repository
 - [x] `GET /api/v1/me` on kabuto side — thin adapter over existing `ensurePrismaUserFromAuth`
 - [x] Unit tests: `AppConfig` × 3, `SessionStore` × 3
+
+### Phase 7 (release polish) — done
+
+- [x] **A7**: `GET /api/v1/creator/agents/:slug` returns the full editor
+      payload; `AgentEditorView` preloads instructions / starters /
+      capabilities / knowledge so edit mode no longer silently wipes data
+- [x] **A8**: pre-signed URL knowledge upload
+      (`upload-url` → PUT → `register` → `DELETE`). iOS `AgentEditorView`
+      integrates `.fileImporter` with PDF / TXT / MD / CSV / JSON,
+      `KnowledgeUploader` handles retries + typed errors
+- [x] **A12.1**: `apple-root-ca.ts` rotation-friendly — array of trusted
+      roots + `APPLE_ROOT_CA_PEM` env override. `verifyIapJwsTyped` walks
+      the chain against each trusted root
+- [x] **A13**: additive `PointPurchase.source` column migration
+      (`20260417180000_point_purchase_source`) + wallet endpoints read
+      with prefix fallback for legacy rows
+- [x] UI polish: `Localizable.xcstrings` with ja/en for the core UI
+      strings; RC pre-flight checklist above
 
 ### Phase 6 (creator + profile/MCP + chat persistence + JWS verification) — done
 

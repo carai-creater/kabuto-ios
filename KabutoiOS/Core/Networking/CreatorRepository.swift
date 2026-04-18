@@ -4,6 +4,16 @@ import Foundation
 struct CreatorRepository: Sendable {
     let api: APIClient
 
+    /// Phase 7 (A7) — full editor detail for preloading edit forms.
+    func fetchDetail(slug: String) async throws -> CreatorAgentDetail {
+        let endpoint = APIEndpoint<CreatorDetailResponse>(
+            path: "api/v1/creator/agents/\(slug)",
+            method: .get,
+            requiresAuth: true
+        )
+        return try await api.send(endpoint).agent
+    }
+
     func listMyAgents() async throws -> [CreatorAgent] {
         let endpoint = APIEndpoint<CreatorListResponse>(
             path: "api/v1/creator/agents",

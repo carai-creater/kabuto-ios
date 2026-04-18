@@ -1,0 +1,150 @@
+{
+  "sourceLanguage" : "ja",
+  "version" : "1.0",
+  "strings" : {
+    "app.title" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Kabuto" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Kabuto" } }
+      }
+    },
+    "tab.home" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ホーム" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } }
+      }
+    },
+    "tab.marketplace" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エージェント" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Agents" } }
+      }
+    },
+    "tab.wallet" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウォレット" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Wallet" } }
+      }
+    },
+    "tab.profile" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロフィール" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } }
+      }
+    },
+    "auth.signIn" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログイン" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in" } }
+      }
+    },
+    "auth.signUp" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新規登録" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign up" } }
+      }
+    },
+    "auth.signOut" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "サインアウト" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign out" } }
+      }
+    },
+    "common.save" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } }
+      }
+    },
+    "common.cancel" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャンセル" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } }
+      }
+    },
+    "common.retry" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "再試行" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Retry" } }
+      }
+    },
+    "common.loading" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み込み中..." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading..." } }
+      }
+    },
+    "error.network" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "通信エラーが発生しました" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Network error" } }
+      }
+    },
+    "error.unauthorized" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認証が必要です" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign-in required" } }
+      }
+    },
+    "empty.marketplace" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "条件に一致するエージェントが見つかりませんでした" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No agents match your filters" } }
+      }
+    },
+    "empty.wallet.signin" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウォレットを表示するにはサインインしてください" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in to view your wallet" } }
+      }
+    },
+    "wallet.balance" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "残高" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Balance" } }
+      }
+    },
+    "wallet.buyPoints" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ポイントを購入" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Buy points" } }
+      }
+    },
+    "wallet.unavailable" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "現在購入不可（商品情報を取得できませんでした）" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Purchases unavailable (products not configured)" } }
+      }
+    },
+    "creator.new" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新規作成" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New agent" } }
+      }
+    },
+    "creator.empty" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだ作成したエージェントがありません" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You haven't created any agents yet" } }
+      }
+    },
+    "creator.knowledge.empty" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ナレッジファイルは登録されていません" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No knowledge files yet" } }
+      }
+    },
+    "chat.placeholder" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メッセージを入力" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Type a message" } }
+      }
+    },
+    "chat.cancel" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "中断" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop" } }
+      }
+    }
+  }
+}

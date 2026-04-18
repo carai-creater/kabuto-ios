@@ -109,20 +109,28 @@ struct ChatView: View {
 
     private func ensureViewModel() async {
         if vm == nil {
-            let historyRepo = env.chatHistoryRepository
+            let persister = env.chatHistoryPersister
             let agentIdOrSlug = agent?.id ?? slug
-            vm = ChatViewModel(
+            let model = ChatViewModel(
                 slug: slug,
                 agent: agent,
-                repository: env.chatRepository,
-                onFinishedPersist: { [historyRepo, agentIdOrSlug] messages in
-                    _ = try? await historyRepo.save(
-                        agentIdOrSlug: agentIdOrSlug,
-                        sessionId: nil,
-                        messages: messages
-                    )
-                }
+                repository: env.chatRepository
             )
+            // Wire persistence hook with the retry-capable persister.
+            // The closure captures the model weakly so the post-save
+            // sessionId update stays on-actor.
+            model.onFinishedPersist = { [weak model, persister, agentIdOrSlug] messages in
+                let currentSessionId = model?.currentSessionId
+                let outcome = await persister.saveWithRetry(
+                    agentIdOrSlug: agentIdOrSlug,
+                    sessionId: currentSessionId,
+                    messages: messages
+                )
+                if case .success(let sid) = outcome {
+                    model?.updateCurrentSessionId(sid)
+                }
+            }
+            vm = model
         }
         if case .signedIn = env.auth.state {
             await vm?.loadHistory()

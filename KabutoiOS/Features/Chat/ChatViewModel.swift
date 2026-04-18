@@ -19,6 +19,10 @@ final class ChatViewModel {
 
     private(set) var messages: [ChatMessage] = []
     private(set) var status: Status = .idle
+    /// Server-assigned session id. Populated by `loadHistory()` from the
+    /// restored row or by the persist hook after a successful save; fed
+    /// back into subsequent saves so all turns stay in one ChatSession.
+    private(set) var currentSessionId: String?
     let agent: AgentDetail?
     let slug: String
 
@@ -48,6 +52,7 @@ final class ChatViewModel {
         status = .loadingHistory
         do {
             let response = try await repository.history(agentId: agent.id, limit: 100)
+            currentSessionId = response.sessionId
             messages = response.messages.compactMap { m in
                 guard let role = ChatMessage.Role(rawValue: m.role) else { return nil }
                 return ChatMessage(id: m.id, role: role, content: m.content)
@@ -56,8 +61,15 @@ final class ChatViewModel {
         } catch {
             // History load failure is non-fatal — start fresh.
             messages = []
+            currentSessionId = nil
             status = .idle
         }
+    }
+
+    /// Called by the persister after a successful save so the next save
+    /// targets the same ChatSession row instead of creating a new one.
+    func updateCurrentSessionId(_ id: String?) {
+        if let id { currentSessionId = id }
     }
 
     // MARK: - Send

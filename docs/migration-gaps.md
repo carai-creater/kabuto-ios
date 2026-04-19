@@ -4,6 +4,27 @@ Items where the iOS port had to make a decision that differs from the
 current kabuto web app, or where a feature is intentionally deferred.
 Each entry: **what**, **why**, **what we do instead**, **owner phase**.
 
+## RC status snapshot (2026-04-19)
+
+**Resolved, not blocking RC**: A1, A2, A3, A4, A5, A6, A7, A8, A11,
+A12, A13, A14, A15, A16, A17, A18.
+
+**Still open but not release-blocking**:
+- **A9** — LLM tool calls (webSearch / image gen / runPython) execute
+  server-side but aren't visualized in the iOS chat UI. Text answers
+  still reflect tool results. Deferred.
+- **A10** — Outbound multi-modal (image / file attachments from the
+  user to the assistant). Phase 4 ships text-only. Deferred.
+- **A12.1.1** — Automated monitor for apple.com/certificateauthority
+  changes. Mitigated by the RC checklist reminder + `APPLE_ROOT_CA_PEM`
+  env override path.
+- **Guest chat** (A8 in older numbering) — iOS requires Bearer;
+  web `/api/chat` still allows IP-based 3/day guest. On purpose.
+
+**Release blockers**: none as of RC. Operator tasks remain (App Store
+Connect products, prod DB migration apply) — see
+`docs/release-runbook.md` §1 and §2.
+
 ---
 
 ## Phase 2

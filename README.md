@@ -4,49 +4,22 @@ Native iOS (SwiftUI) client for [kabuto](https://github.com/carai-creater/kabuto
 
 This project mirrors the feature set of the existing Next.js web app without changing its behavior or domain model. The existing Next.js backend is the source of truth; this app talks to it via a new `/api/v1/*` REST layer (to be added in kabuto).
 
-## RC pre-flight checklist
+## Release documentation
 
-Complete these before cutting a release candidate build (`rc-*` tag).
-Items marked **[server]** happen in the kabuto repo; everything else
-is iOS-side.
+Three documents, each scoped to one task:
 
-**Apple Developer / App Store Connect**
-- [ ] Real Bundle ID registered (replaces placeholder `com.carai.kabutoios`)
-- [ ] Three IAP products (`pt_500`, `pt_1100`, `pt_3500`) created and
-      priced to match `WalletPackage.swift` expected JPY (500 / 1000 / 3000)
-- [ ] Sandbox tester account configured for end-to-end purchase test
-- [ ] `IAP_EXPECTED_BUNDLE_ID` **[server]** env var set to the real Bundle ID
+| Document | Purpose | Audience |
+|---|---|---|
+| **[docs/release-runbook.md](docs/release-runbook.md)** | Canonical env-var list + pre-deploy DB work + Supabase infra + **incident runbook** for IAP / chat / knowledge (with rollback steps) | on-call engineer |
+| **[docs/testflight-checklist.md](docs/testflight-checklist.md)** | Section-by-section checklist run top-to-bottom per RC build | release engineer |
+| **[docs/migration-gaps.md](docs/migration-gaps.md)** | Every decision where iOS intentionally diverges from web, with the rationale | anyone picking up the project |
 
-**Server environment (kabuto)**
-- [ ] PointPurchase.source migration applied:
-      `npx prisma migrate deploy` in the production DB pool
-- [ ] `APPLE_ROOT_CA_PEM` **[server]** left unset (use baked-in G3) OR
-      set to a new root PEM bundle if Apple has rotated
-- [ ] Supabase Storage bucket `agent-knowledge` exists with RLS allowing
-      the service-role key to create/read/remove under `<userId>/<agentId>/`
-- [ ] All `/api/v1/*` endpoints reachable from the built binary's
-      `KABUTO_API_BASE_URL`
-
-**iOS build config**
-- [ ] `Config/Secrets.xcconfig` populated with production Supabase URL
-      and publishable key (not the dev placeholders)
-- [ ] `KABUTO_API_BASE_URL` points at the production Next.js deploy
-- [ ] Release configuration Bundle ID matches App Store Connect
-- [ ] Archive builds cleanly via `xcodebuild -configuration Release archive`
-
-**Smoke tests on a device**
-- [ ] Sign up with a fresh email → confirmation flow works
-- [ ] Marketplace list loads, agent detail loads
-- [ ] Chat stream produces text, turn persists across app restart
-- [ ] Sandbox IAP purchase completes, balance updates
-- [ ] Creator: create agent → edit (preload verified) → upload a PDF →
-      publish → unpublish
-- [ ] Profile edit saves, MCP connection add/delete works
-
-**Release cut**
-- [ ] Tag: `git tag rc-0.1.0 && git push origin rc-0.1.0`
-- [ ] Export IPA with distribution profile
-- [ ] Upload to TestFlight
+**Minimum RC pre-flight** (short form — the checklist has the full set):
+1. Fill `Config/Secrets.xcconfig` with production values
+2. Confirm every `required` env in release-runbook §1 is set in Vercel
+3. Run `prisma migrate deploy` once in the prod DB pool
+4. Register `pt_500` / `pt_1100` / `pt_3500` IAP products in App Store Connect
+5. Tag `rc-X.Y.Z` → Xcode archive → TestFlight upload
 
 ## Status
 

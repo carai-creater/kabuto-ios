@@ -3,7 +3,7 @@ import os
 
 /// Central OSLog categories. Feature code does `Log.auth.debug("...")`.
 enum Log {
-    private static let subsystem = "com.carai.kabutoios"
+    private static let subsystem = "com.carai.kabuto"
 
     static let app = Logger(subsystem: subsystem, category: "app")
     static let auth = Logger(subsystem: subsystem, category: "auth")

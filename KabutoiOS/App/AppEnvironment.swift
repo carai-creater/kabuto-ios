@@ -28,7 +28,7 @@ final class AppEnvironment {
 
     init(config: AppConfig) {
         self.config = config
-        let session = SessionStore(keychain: KeychainStorage(service: "com.carai.kabutoios.session"))
+        let session = SessionStore(keychain: KeychainStorage(service: "com.carai.kabuto.session"))
         self.auth = AuthService(config: config, sessionStore: session)
         self.apiClient = APIClient(
             baseURL: config.apiBaseURL,
